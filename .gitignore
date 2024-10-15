@@ -163,4 +163,6 @@ cython_debug/
 *.pt
 data/
 *.png
-
+/runs
+datasets/football_data/train
+datasets/football_data/valid
