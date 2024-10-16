@@ -166,3 +166,4 @@ data/
 /runs
 datasets/football_data/train
 datasets/football_data/valid
+results/
