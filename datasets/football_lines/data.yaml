@@ -1,0 +1,28 @@
+path: ../datasets/football_lines
+train: train/images
+val: valid/images
+
+names:
+  0: Circle central
+  1: Circle left
+  2: Circle right
+
+  3: Big rect. left bottom
+  4: Big rect. left main
+  5: Big rect. left top
+  6: Small rect. left bottom
+  7: Small rect. left main
+  8: Small rect. left top
+
+  9: Big rect. right bottom
+  10: Big rect. right main
+  11: Big rect. right top
+  12: Small rect. right bottom
+  13: Small rect. right main
+  14: Small rect. right top
+
+  15: Middle line
+  16: Side line bottom
+  17: Side line left
+  18: Side line right
+  19: Side line top
