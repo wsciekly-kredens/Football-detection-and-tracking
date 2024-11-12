@@ -29,11 +29,37 @@ class Keypoint:
         'Side line right': 16,
         'Side line top': 17
     }
+    _real_pitch_crossing_coordinates = {
+        (0, -1): (52.5, 34),
+        (0, 13): ((52.5, 24.85), (52.5, 43.15)),
+        (13, 14): (52.5, 0),
+        (13, 17): (52.5, 68),
+
+        (1, 15): (0, 13),
+        (2, 15): (0, 34),
+        (3, 15): (0, 55),
+        (4, 15): (0, 24.5),
+        (5, 15): (0, 34),
+        (6, 15): (0, 43.5),
+
+        (7, 16): (105, 13),
+        (8, 16): (105, 34),
+        (9, 16): (105, 55),
+        (10, 16): (105, 24.5),
+        (11, 16): (105, 34),
+        (12, 16): (105, 43.5),
+
+        (14, 15): (0, 0),
+        (15, 17): (0, 68),
+        (14, 16): (105, 0),
+        (16, 17): (105, 68)
+    }
 
 
     def __init__(self):
         self._lines = {}
         self._get_crossing_matrix()
+        self._get_real_pitch_coordinates()
 
     def _get_crossing_matrix(self):
         crossing_matrix = np.zeros((18, 18))
@@ -41,8 +67,8 @@ class Keypoint:
         crossing_matrix[13, 0] = 1
         crossing_matrix[13, 14] = 1
         crossing_matrix[14, 13] = 1
-        crossing_matrix[13, 15] = 1
-        crossing_matrix[15, 13] = 1
+        crossing_matrix[13, 17] = 1
+        crossing_matrix[17, 13] = 1
 
         crossing_matrix[1, 15] = 1
         crossing_matrix[15, 1] = 1
@@ -50,8 +76,8 @@ class Keypoint:
         crossing_matrix[2, 1] = 1
         crossing_matrix[3, 2] = 1
         crossing_matrix[2, 3] = 1
-        crossing_matrix[2, 15] = 1
-        crossing_matrix[15, 2] = 1
+        crossing_matrix[3, 15] = 1
+        crossing_matrix[15, 3] = 1
 
         crossing_matrix[4, 15] = 1
         crossing_matrix[15, 4] = 1
@@ -64,8 +90,8 @@ class Keypoint:
 
         crossing_matrix[14, 15] = 1
         crossing_matrix[15, 14] = 1
-        crossing_matrix[15, 16] = 1
-        crossing_matrix[16, 15] = 1
+        crossing_matrix[15, 17] = 1
+        crossing_matrix[17, 15] = 1
 
         crossing_matrix[7, 16] = 1
         crossing_matrix[16, 7] = 1
@@ -91,6 +117,64 @@ class Keypoint:
         crossing_matrix[17, 16] = 1
 
         self._crossing_matrix = crossing_matrix
+
+    def _get_real_pitch_coordinates(self):
+        pitch_length = 105
+        pitch_width = 68
+        corner_to_box_edge = 13.85
+        box_edge_to_goal = 16.5
+        goal_width = 7.32
+        inside_box_edge_to_goal = 5.5
+        box_length = 16.5
+        inside_box_length = 5.5
+        circle_radius = 9.15
+        big_box_edge_to_inside_box_edge = box_edge_to_goal - inside_box_edge_to_goal
+
+        real_pitch_coordinates_full = np.array([
+            [0.0, 0.0],
+            [0.0, corner_to_box_edge],
+            [0.0, corner_to_box_edge + big_box_edge_to_inside_box_edge],
+            [0.0, 68.0 - corner_to_box_edge - big_box_edge_to_inside_box_edge],
+            [0.0, 68.0 - corner_to_box_edge],
+            [0.0, 68.0],
+
+            [inside_box_length, corner_to_box_edge + big_box_edge_to_inside_box_edge],
+            [inside_box_length, 68 - corner_to_box_edge - big_box_edge_to_inside_box_edge],
+
+            [11.0, pitch_width / 2],
+
+            [box_length, corner_to_box_edge],
+            [box_length, 34.0 - 7.66],
+            [box_length, 34.0 + 7.66],
+            [box_length, 68 - corner_to_box_edge],
+
+            [pitch_length / 2 - circle_radius, pitch_width / 2],
+
+            [pitch_length / 2, 0.0],
+            [pitch_length / 2, pitch_width / 2 - circle_radius],
+            [pitch_length / 2, pitch_width / 2 + circle_radius],
+            [pitch_length / 2, 68.0],
+
+            [pitch_length / 2 + circle_radius, pitch_width / 2],
+
+            [pitch_length - box_length, corner_to_box_edge],
+            [pitch_length - box_length, 34.0 - 7.66],
+            [pitch_length - box_length, 34.0 + 7.66],
+            [pitch_length - box_length, 68 - corner_to_box_edge],
+
+            [pitch_length - 11.0, pitch_width / 2],
+
+            [pitch_length - inside_box_length, corner_to_box_edge + big_box_edge_to_inside_box_edge],
+            [pitch_length - inside_box_length, 68 - corner_to_box_edge - big_box_edge_to_inside_box_edge],
+
+            [pitch_length, 0.0],
+            [pitch_length, corner_to_box_edge],
+            [pitch_length, corner_to_box_edge + big_box_edge_to_inside_box_edge],
+            [pitch_length, 68.0 - corner_to_box_edge - big_box_edge_to_inside_box_edge],
+            [pitch_length, 68.0 - corner_to_box_edge],
+            [pitch_length, 68.0]
+        ])
+        self._real_pitch_coordinates = real_pitch_coordinates_full
 
     @staticmethod
     def get_line_pattern(points: list) -> tuple[np.float64, np.float64]:
@@ -136,9 +220,8 @@ class Keypoint:
                     points: list[tuple[float, float]] = random.sample(points_dict[line], 5)
                     points = [(x * 1920, y * 1080) for x, y in points]
                     ellipse = Ellipse(points)
-                    func_pattern = ellipse.get_equation_parameters()
                     line_id = self._get_line_name_mapping(line)
-                    image_dict[image_id][line_id] = func_pattern
+                    image_dict[image_id][line_id] = ellipse
                 else:
                     points = random.sample(points_dict[line], 2)
                     points = [(x * 1920, y * 1080) for x, y in points]
@@ -191,11 +274,18 @@ class Keypoint:
 
         to_return = list()
 
+        center_x, center_y = ellipse.get_center()
+        center_x = center_x if 0 <= center_x <= im_width else None
+        center_y = center_y if 0 <= center_y <= im_height else None
+
         if x1 is not None and y1 is not None:
             to_return.append((x1, y1))
 
         if x2 is not None and y2 is not None:
             to_return.append((x2, y2))
+
+        if center_x is not None and center_y is not None:
+            to_return.append((center_x, center_y))
 
         if len(to_return) > 0:
             return to_return
@@ -208,11 +298,10 @@ class Keypoint:
         keypoints = list()
         for line in lines.keys():
             possible_crossings = np.where(self._crossing_matrix[line] == 1)
+            possible_crossings = possible_crossings[0].tolist()
+            print(line)
             print(possible_crossings)
-            print(type(possible_crossings))
-            possible_crossings = list(possible_crossings)
             for crossing in possible_crossings:
-                print(crossing)
                 if crossing in lines.keys():
                     if line < crossing:
                         matches.append((line, crossing))
@@ -221,7 +310,7 @@ class Keypoint:
         matches = set(matches)
         for match in matches:
             if match[0] == 0:
-                keypoints.append(self.get_linear_with_ellipse_crossing(lines[match[1]], lines[0]))
+                keypoints += self.get_linear_with_ellipse_crossing(lines[match[1]], lines[0])
             else:
                 keypoints.append(self.get_linear_crossing_points(lines[match[0]], lines[match[1]]))
 

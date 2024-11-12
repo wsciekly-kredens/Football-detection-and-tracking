@@ -45,6 +45,32 @@ class DataParser:
         self._parsed_df = df
         return df
 
+    def _flatten_data(self) -> list:
+        flat_list = [y for x in self._data for y in x]
+        return flat_list
+
+    def get_pitch_data_df(self) -> pd.DataFrame:
+        data = self._flatten_data()
+        pitch_data_dict = {'id': [], 'image_id': [], 'line_type': [], 'x': [], 'y': []}
+        allowed_lines = ['Circle central', 'Big rect. left bottom', 'Big rect. left main', 'Big rect. left top',
+                         'Small rect. left bottom', 'Small rect. left main', 'Small rect. left top',
+                         'Big rect. right bottom', 'Big rect. right main', 'Big rect. right top',
+                         'Small rect. right bottom', 'Small rect. right main', 'Small rect. right top', 'Middle line',
+                         'Side line bottom', 'Side line left', 'Side line right', 'Side line top']
+        data = filter(lambda x: x['supercategory'] == 'pitch', data)
+        for anotation in tqdm(data):
+            lines = anotation['lines']
+            lines = {k: v for k, v in lines.items() if k in allowed_lines}
+            for line in lines:
+                for data_point in anotation['lines'][line]:
+                    pitch_data_dict['id'].append(int(anotation['id']))
+                    pitch_data_dict['image_id'].append(int(anotation['image_id']))
+                    pitch_data_dict['line_type'].append(line)
+                    pitch_data_dict['x'].append(data_point['x'])
+                    pitch_data_dict['y'].append(data_point['y'])
+        pitch_df = pd.DataFrame(pitch_data_dict)
+        return pitch_df
+
     def get_shirts_data(self, image_id: str = None) -> pd.DataFrame:
         if not hasattr(self, '_parsed_df'):
             raise AttributeError('DataFrame not created yet. Run parse_data_to_df method first.')
@@ -65,4 +91,6 @@ class DataParser:
     def get_parsed_df(self) -> pd.DataFrame:
         if hasattr(self, '_parsed_df'):
             return self._parsed_df
-        raise AttributeError('DataFrame not created yet. Run parse_data_to_df method first.')
+        else:
+            self.parse_data_to_df()
+            return self._parsed_df

@@ -6,7 +6,7 @@ import cv2
 
 
 class ShirtColor:
-    def __init__(self, frame: np.ndarray, boxes: list[np.ndarray], true_values: list[int]):
+    def __init__(self, frame: np.ndarray, boxes: list[np.ndarray], true_values: list[int] = None):
         self.frame = frame
         self.boxes = boxes
         self.true_values = true_values
@@ -72,6 +72,11 @@ class ShirtColor:
         self.get_shirt_color()
         self.predict_team()
         return self.get_accuracy()
+
+    def get_predicted_colors(self) -> tuple:
+        colors = self.get_shirt_color()
+        teams = self.predict_team()
+        return colors, teams
 
     def plot(self, c: list, return_plot: bool = False):
         plt.scatter(range(1, len(self.colors) + 1), self.colors, c=c)

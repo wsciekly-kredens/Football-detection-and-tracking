@@ -5,3 +5,5 @@ val: valid/images
 names:
   0: player
   1: ball
+  2: goalkeeper
+  3: referee
