@@ -171,4 +171,5 @@ datasets/football_lines/train
 datasets/football_lines/valid
 datasets/keypoints_data
 results/
-
+/training
+*.mp4

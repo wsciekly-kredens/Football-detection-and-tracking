@@ -3,6 +3,7 @@ from ellipse import Ellipse
 from tqdm import tqdm
 import pandas as pd
 import random
+from ultralytics import YOLO
 
 
 class Keypoint:
@@ -56,7 +57,8 @@ class Keypoint:
     }
 
 
-    def __init__(self):
+    def __init__(self, model: YOLO):
+        self.model = model
         self._lines = {}
         self._get_crossing_matrix()
         self._get_real_pitch_coordinates()
@@ -184,8 +186,7 @@ class Keypoint:
         return np.float64(a), np.float64(b)
 
     @staticmethod
-    def get_circle_pattern(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float) -> tuple[
-        float, float, float]:
+    def get_circle_pattern(x1: float, y1: float, x2: float, y2: float, x3: float, y3: float) -> tuple[float, float, float]:
         A = np.array([
             [x1, x2, 1],
             [x2, y2, 1],

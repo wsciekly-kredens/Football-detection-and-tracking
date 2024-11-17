@@ -29,8 +29,8 @@ class ShirtColor:
     def _get_players(self) -> list[np.ndarray]:
         players = []
         for bbox in self.boxes:
-            x, y, w, h = map(lambda elem: int(elem), bbox)
-            player = self.frame[y:y + h, x:x + w]
+            x, y, x2, y2 = map(lambda elem: int(elem), bbox)
+            player = self.frame[y:y2, x:x2]
             players.append(player)
         return players
 
@@ -48,11 +48,20 @@ class ShirtColor:
         kits = self._get_kits()
         for kit in kits:
             im = Image.fromarray(kit)
-            im = im.convert('P', colors=16)
+            im = im.convert('P', colors=128)
             im = np.array(im)
             mean_color = np.mean(im, axis=(0, 1))
             mean_colors.append(mean_color)
         self.colors = mean_colors
+        return mean_colors
+
+    def get_rgb_shirt_color(self) -> list[np.float64]:
+        mean_colors: list[int] = []
+        kits = self._get_kits()
+        for kit in kits:
+            mean_color = np.mean(kit, axis=(0, 1))
+            mean_colors.append(mean_color)
+        self.rgb_colors = mean_colors
         return mean_colors
 
     def predict_team(self) -> np.array:
@@ -90,7 +99,6 @@ class ShirtColor:
         if len(self.colors) == 0 or len(self.labels) == 0:
             return
         self.plot(self.labels, return_plot)
-
 
     def plot_true_colors(self, return_plot: bool = False):
         if len(self.colors) == 0:
