@@ -24,8 +24,12 @@ class Radar:
         df: pd.DataFrame = df if df is not None else self.players_df.copy()
         for track_id in df['track_id'].unique():
             df_one_player = df[df['track_id'] == track_id]
-            x_smooth = savgol_filter(df_one_player['x'].values, self.smoothing_window, 2)
-            y_smooth = savgol_filter(df_one_player['y'].values, self.smoothing_window, 2)
+            if df_one_player.shape[0] > self.smoothing_window:
+                x_smooth = savgol_filter(df_one_player['x'].values, self.smoothing_window, 2)
+                y_smooth = savgol_filter(df_one_player['y'].values, self.smoothing_window, 2)
+            else:
+                x_smooth = df_one_player['x'].values
+                y_smooth = df_one_player['y'].values
             df.loc[df['track_id'] == track_id, 'x_smooth'] = x_smooth
             df.loc[df['track_id'] == track_id, 'y_smooth'] = y_smooth
         return df
