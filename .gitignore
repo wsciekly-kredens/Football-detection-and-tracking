@@ -168,4 +168,8 @@ data/
 results/
 /training
 *.mp4
-/datasets/
+datasets/field_keypoints/
+datasets/football_data/
+datasets/football_lines/
+datasets/keypoints_data/
+datasets/keypoints_field/
