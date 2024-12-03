@@ -8,6 +8,7 @@ class Tracker:
     def __init__(self, detector: Detector):
         self.detector = detector
         self._tracker = sv.ByteTrack()
+        self._tracks = None
 
     def set_tracker(self, tracker):
         self._tracker = tracker
@@ -22,7 +23,7 @@ class Tracker:
         return tracks
 
     def annotate_frames(self, video: list[np.ndarray]) -> list[np.ndarray]:
-        tracks = self.track(video)
+        tracks = self.track(video) if self._tracks is None else self._tracks
         for frame, tracker in zip(video, tracks):
             for bbox, tracker_id in zip(tracker.xyxy, tracker.tracker_id):
                 x1, y1, x2, y2 = map(int, bbox)

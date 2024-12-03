@@ -13,6 +13,8 @@ class ShirtColor:
         self.crop_factor = 0.25
         self.colors = list()
         self.labels = list()
+        self.rgb_colors = list()
+        self._kits = None
 
     def set_frame(self, frame: np.ndarray):
         self.frame = frame
@@ -43,9 +45,9 @@ class ShirtColor:
             kits.append(kit)
         return kits
 
-    def get_shirt_color(self) -> list[np.float64]:
+    def get_shirt_color(self) -> list[int]:
         mean_colors: list[int] = []
-        kits = self._get_kits()
+        kits = self._get_kits() if self._kits is None else self._kits
         for kit in kits:
             im = Image.fromarray(kit)
             im = im.convert('P', colors=128)
@@ -55,9 +57,9 @@ class ShirtColor:
         self.colors = mean_colors
         return mean_colors
 
-    def get_rgb_shirt_color(self) -> list[np.float64]:
+    def get_rgb_shirt_color(self) -> list[int]:
         mean_colors: list[int] = []
-        kits = self._get_kits()
+        kits = self._get_kits() if self._kits is None else self._kits
         for kit in kits:
             mean_color = np.mean(kit, axis=(0, 1))
             mean_colors.append(mean_color)
@@ -72,6 +74,14 @@ class ShirtColor:
         self.labels = kmeans.labels_
         return kmeans.labels_
 
+    def predict_team_with_rgb(self) -> np.array:
+        if len(self.rgb_colors) == 0:
+            return
+        color_values = self.rgb_colors
+        kmeans = KMeans(n_clusters=2, random_state=0).fit(color_values)
+        self.labels = kmeans.labels_
+        return kmeans.labels_
+
     def get_accuracy(self) -> np.float64 | None:
         if len(self.labels) == 0:
             return
@@ -80,6 +90,11 @@ class ShirtColor:
     def run_prediction(self) -> np.float64 | None:
         self.get_shirt_color()
         self.predict_team()
+        return self.get_accuracy()
+
+    def run_prediction_with_rgb(self) -> np.float64 | None:
+        self.get_rgb_shirt_color()
+        self.predict_team_with_rgb()
         return self.get_accuracy()
 
     def get_predicted_colors(self) -> tuple:
@@ -104,3 +119,57 @@ class ShirtColor:
         if len(self.colors) == 0:
             return
         self.plot(self.true_values, return_plot)
+
+    def plot_kits(self, path: str = None, show: bool = False):
+        kits = self._get_kits() if self._kits is None else self._kits
+        total_width = sum(kit.shape[1] for kit in kits)
+        max_height = max(kit.shape[0] for kit in kits)
+
+        output_image = np.zeros((max_height, total_width, 3), dtype=np.uint8)
+
+        current_x = 0
+        for kit in kits:
+            h, w = kit.shape[:2]
+            output_image[0:h, current_x:current_x + w] = kit
+            current_x += w
+        if path is not None:
+            cv2.imwrite(path, output_image)
+        if show:
+            plt.imshow(output_image)
+
+    def plot_average_color(self, path: str = None, show: bool = False):
+        kits = self._get_kits()
+        shirt_colors = self.get_shirt_color()
+        rgb_colors = self.get_rgb_shirt_color()
+        total_width = sum(kit.shape[1] for kit in kits)
+        class_colors = ((255, 255, 255), (0, 0, 0))
+
+        max_kit_height = max(kit.shape[0] for kit in kits)
+        swatch_height = max_kit_height // 10
+        total_height = max_kit_height + 3 * swatch_height
+        output_image = np.zeros((total_height, total_width, 3), dtype=np.uint8)
+
+        current_x = 0
+        for i, kit in enumerate(kits):
+            h, w = kit.shape[:2]
+            avg_color = shirt_colors.pop(0)
+            arg_rgb_color = rgb_colors.pop(0)
+            class_color = class_colors[int(self.labels[i])]
+            output_image[0:h, current_x:current_x + w] = kit
+            color_swatch = np.full((swatch_height, w, 3), avg_color, dtype=np.uint8)
+            rgb_swatch = np.full((swatch_height, w, 3), arg_rgb_color, dtype=np.uint8)
+            class_swatch = np.full((swatch_height, w, 3), class_color, dtype=np.uint8)
+
+            output_image[total_height  - 3 * swatch_height:total_height - 2 * swatch_height,
+            current_x:current_x + w] = color_swatch
+            output_image[total_height - 2 * swatch_height:total_height - swatch_height, current_x:current_x + w] = rgb_swatch
+            output_image[total_height - swatch_height:total_height, current_x:current_x + w] = class_swatch
+
+            current_x += w
+
+        if path is not None:
+            cv2.imwrite(path, output_image)
+        if show:
+            plt.imshow(cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB))
+            plt.axis('off')
+            plt.show()

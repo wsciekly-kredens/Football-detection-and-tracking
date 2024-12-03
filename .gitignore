@@ -162,14 +162,10 @@ cython_debug/
 
 *.pt
 data/
+datasets/
 *.png
 *.jpg
 /runs
-datasets/football_data/train
-datasets/football_data/valid
-datasets/football_lines/train
-datasets/football_lines/valid
-datasets/keypoints_data/
 results/
 /training
 *.mp4

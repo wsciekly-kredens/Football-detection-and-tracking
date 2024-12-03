@@ -74,8 +74,11 @@ class PlayerPosition:
     @staticmethod
     def _calculate_players_position(predictions: Detections, homography_matrix: np.ndarray) -> np.array:
         image_position = list()
-        predictions_list = predictions.xyxy.tolist()
-        for prediction in predictions_list:
+        predictions_list: list[list] = predictions.xyxy.tolist()
+        detection_classes: list[int] = predictions.class_id.tolist()
+        for prediction, detection_class in zip(predictions_list, detection_classes):
+            if detection_class != 0:
+                continue
             x1, y1, x2, y2 = prediction
             player_x = (x1 + x2) / 2
             player_y = y2
