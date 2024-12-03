@@ -162,10 +162,10 @@ cython_debug/
 
 *.pt
 data/
-datasets/
 *.png
 *.jpg
 /runs
 results/
 /training
 *.mp4
+/datasets/
