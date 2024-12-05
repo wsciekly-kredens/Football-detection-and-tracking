@@ -92,6 +92,7 @@ class TeamAffiliation:
         teams_list = self.calculate_teams(shirt_colors)
         return teams_list
 
+ # TODO trzeba poprawić
     def get_rgb_teams(self) -> list:
         shirt_colors, rgb_colors = self.get_shirt_colors()
         self.train_kmeans_rgb(rgb_colors)

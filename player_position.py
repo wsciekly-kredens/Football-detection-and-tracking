@@ -88,7 +88,7 @@ class PlayerPosition:
         players_position[:, 1] = 68 - players_position[:, 1]
         return players_position
 
-    def get_players_position(self, keypoints_all_frames: list[list], predictions_all_frames: list[Detections]) -> list:
+    def get_players_position(self, keypoints_all_frames: list[list], predictions_all_frames: list[Detections]) -> list[np.array]:
         players_position = list()
         for keypoints, predictions in zip(keypoints_all_frames, predictions_all_frames):
             homography_matrix = self._get_homography_matrix(keypoints)
