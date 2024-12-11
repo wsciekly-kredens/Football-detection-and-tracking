@@ -1,5 +1,5 @@
-from shirt_color import ShirtColor
-from tracker import Tracker
+from .shirt_color import ShirtColor
+from src.detections import Detector
 import numpy as np
 import cv2
 from sklearn.cluster import KMeans
@@ -10,7 +10,7 @@ class TeamAffiliation:
     def __init__(self, trucks: list[Detections], video: list[np.ndarray]):
         self.trucks = trucks
         self.video = video
-        self.kmeans = KMeans(n_clusters=2)
+        self.kmeans = KMeans(n_clusters=2, random_state=0)
         self.assigned_ids = {}
         self._team_colors = None
 
@@ -68,13 +68,13 @@ class TeamAffiliation:
             teams.append([track_id_to_team_map[track_id] for track_id in frame])
         return teams
 
-    def calculate_rgb_teams(self, shirt_colors: list) -> list:
+    def calculate_rgb_teams(self, shirt_colors: list[list[np.array]]) -> list:
         teams = []
         frames_ids = []
         for colors, tracks in zip(shirt_colors, self.trucks):
             frame_ids = []
             for color, track_id in zip(colors, tracks.tracker_id):
-                team = self.kmeans.predict(color)[0]
+                team = self.kmeans.predict(color.reshape(1, -1))[0]
                 frame_ids.append(track_id)
                 if track_id in self.assigned_ids.keys():
                     self.assigned_ids[track_id].append(team)
@@ -118,7 +118,7 @@ class TeamAffiliation:
             raise ValueError("Mode must be 'gray' or 'rgb'")
         shirt_colors, rgb_colors = self.get_shirt_colors()
         if mode == 'rgb':
-            self.train_kmeans(rgb_colors)
+            self.train_kmeans_rgb(rgb_colors)
             teams_list = self.calculate_teams(rgb_colors)
         else:
             self.train_kmeans(shirt_colors)

@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 import numpy as np
 import supervision as sv
-from detector import Detector
+from .detector import Detector
 import cv2
 
 class Tracker:

@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 import random
 from matplotlib import animation
 import numpy as np
-from sympy.printing.pretty.pretty_symbology import line_width
 
 
 class Radar:
     def __init__(self, players_df: pd.DataFrame, team_colors: tuple, smoothing_window: int = 5):
         self.players_df = players_df
         self.team_colors = self._parse_colors(team_colors)
+        self._edge_colors = ((0, 0, 0), (1, 1, 1))
         self.smoothing_window = smoothing_window
         self.n_frames = players_df['frame'].nunique()
         self.track_id_color = dict()
@@ -60,7 +60,9 @@ class Radar:
         pitch = Pitch(pitch_type='custom', axis=axis, label=axis, pitch_length=105, pitch_width=68)
         fig, ax = pitch.draw()
         df = self.players_df[self.players_df['frame'] == frame_num]
-        pitch.scatter(df.x, df.y, ax=ax, c=df.team, marker='o', edgecolors='black')
+        color_map = [self.team_colors[team] for team in df.team]
+        edge_colors = [self._edge_colors[team] for team in df.team]
+        pitch.scatter(df.x, df.y, ax=ax, c=color_map, marker='o', edgecolors=edge_colors)
         plt.show()
 
     # TODO dopasować do formatu danych w klasie
@@ -95,6 +97,7 @@ class Radar:
         track_ids = df_frame['track_id'].unique()
         df_range = df[df['frame'].isin(range(last_frame, n_frame + 1))]
         color_map = [self.team_colors[team] for team in df_frame.team]
+        edge_colors = [self._edge_colors[team] for team in df_frame.team]
 
         plt.figure(figsize=(8, 8))
         pitch = Pitch(pitch_type='custom', pitch_length=105, pitch_width=68)
@@ -105,8 +108,8 @@ class Radar:
             df_track = df_range[df_range['track_id'] == track_id]
             pitch.plot(df_track.x_smooth, df_track.y_smooth, ax=ax, c=self.track_id_color[track_id], linewidth=4.0,
                        zorder=1)
-        pitch.scatter(df_frame.x_smooth, df_frame.y_smooth, ax=ax, c=color_map, marker='o', edgecolors='black',
-                      s=220, zorder=2)
+        pitch.scatter(df_frame.x_smooth, df_frame.y_smooth, ax=ax, c=color_map, marker='o', edgecolors=edge_colors,
+                      s=220, zorder=2, linewidths=3)
         if draw:
             plt.show()
         plt.close()

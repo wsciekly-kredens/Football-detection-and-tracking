@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from ellipse import Ellipse
+from src.lines import Ellipse
 
 
 def draw_line_on_image(image: np.array, func: tuple, give_pattern: bool = False) -> np.array:

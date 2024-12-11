@@ -1,5 +1,5 @@
 import numpy as np
-from ellipse import Ellipse
+from .ellipse import Ellipse
 from tqdm import tqdm
 import pandas as pd
 import random

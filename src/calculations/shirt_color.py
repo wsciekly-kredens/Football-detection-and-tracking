@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from skimage.color import rgb2lab
 import cv2
 
 
@@ -57,13 +58,22 @@ class ShirtColor:
         self.colors = mean_colors
         return mean_colors
 
-    def get_rgb_shirt_color(self) -> list[int]:
+    def get_rgb_shirt_color(self) -> list[np.array]:
         mean_colors: list[int] = []
         kits = self._get_kits() if self._kits is None else self._kits
         for kit in kits:
             mean_color = np.mean(kit, axis=(0, 1))
             mean_colors.append(mean_color)
         self.rgb_colors = mean_colors
+        return mean_colors
+
+    def get_lab_shirt_color(self) -> list[int]:
+        rgb_colors: list[np.array] = self.get_rgb_shirt_color()
+        mean_colors = []
+        for color in rgb_colors:
+            color = color / 255
+            color_lab = rgb2lab(color.reshape(1, 1, 3))[0][0]
+            mean_colors.append(color_lab)
         return mean_colors
 
     def predict_team(self) -> np.array:
@@ -82,6 +92,12 @@ class ShirtColor:
         self.labels = kmeans.labels_
         return kmeans.labels_
 
+    def predict_team_with_lab(self) -> np.array:
+        color_values = self.get_lab_shirt_color()
+        kmeans = KMeans(n_clusters=2, random_state=0).fit(color_values)
+        self.labels = kmeans.labels_
+        return kmeans.labels_
+
     def get_accuracy(self) -> np.float64 | None:
         if len(self.labels) == 0:
             return
@@ -95,6 +111,10 @@ class ShirtColor:
     def run_prediction_with_rgb(self) -> np.float64 | None:
         self.get_rgb_shirt_color()
         self.predict_team_with_rgb()
+        return self.get_accuracy()
+
+    def run_prediction_with_lab(self) -> np.float64 | None:
+        self.predict_team_with_lab()
         return self.get_accuracy()
 
     def get_predicted_colors(self) -> tuple:
@@ -153,11 +173,11 @@ class ShirtColor:
         for i, kit in enumerate(kits):
             h, w = kit.shape[:2]
             avg_color = shirt_colors.pop(0)
-            arg_rgb_color = rgb_colors.pop(0)
+            avg_rgb_color = rgb_colors.pop(0)
             class_color = class_colors[int(self.labels[i])]
             output_image[0:h, current_x:current_x + w] = kit
             color_swatch = np.full((swatch_height, w, 3), avg_color, dtype=np.uint8)
-            rgb_swatch = np.full((swatch_height, w, 3), arg_rgb_color, dtype=np.uint8)
+            rgb_swatch = np.full((swatch_height, w, 3), avg_rgb_color, dtype=np.uint8)
             class_swatch = np.full((swatch_height, w, 3), class_color, dtype=np.uint8)
 
             output_image[total_height  - 3 * swatch_height:total_height - 2 * swatch_height,

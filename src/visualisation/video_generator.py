@@ -1,9 +1,8 @@
 import numpy as np
 import cv2
-from radar import Radar
+from .radar import Radar
 from matplotlib import pyplot as plt
 from tqdm import tqdm
-from time import time
 
 
 class VideoGenerator:
