@@ -35,8 +35,8 @@ class TeamAffiliation:
             shirt_color = ShirtColor(frame, truck.xyxy.tolist())
             color = shirt_color.get_shirt_color()
             rgb_color = shirt_color.get_rgb_shirt_color()
-            class_id = truck.class_id.tolist()
-            color, rgb_color = self.filter_non_players(color, rgb_color, class_id)
+            # class_id = truck.class_id.tolist()
+            # color, rgb_color = self.filter_non_players(color, rgb_color, class_id)
             shirt_colors.append(color)
             rgb_shirt_colors.append(rgb_color)
         return shirt_colors, rgb_shirt_colors
@@ -92,7 +92,6 @@ class TeamAffiliation:
         teams_list = self.calculate_teams(shirt_colors)
         return teams_list
 
- # TODO trzeba poprawić
     def get_rgb_teams(self) -> list:
         shirt_colors, rgb_colors = self.get_shirt_colors()
         self.train_kmeans_rgb(rgb_colors)

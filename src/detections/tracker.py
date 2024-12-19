@@ -1,8 +1,10 @@
 from ultralytics import YOLO
+from ultralytics.engine.results import Results
 import numpy as np
 import supervision as sv
 from .detector import Detector
 import cv2
+from torch import tensor
 
 class Tracker:
     def __init__(self, detector: Detector):
@@ -13,8 +15,19 @@ class Tracker:
     def set_tracker(self, tracker):
         self._tracker = tracker
 
+    @staticmethod
+    def _filter_non_players(detections: list[Results]) -> list[Results]:
+        detections_filtered = list()
+        for detection in detections:
+            cls: tensor = detection.boxes.cls
+            mask: tensor = cls == 0
+            detections_filtered.append(detection[mask])
+        return detections_filtered
+
+
     def track(self, video: list[np.ndarray]) -> list:
         detections = self.detector.detect(video)
+        detections: list[Results] = self._filter_non_players(detections)
         tracks: list = list()
         for i, detection in enumerate(detections):
             dets = sv.Detections.from_ultralytics(detection)
