@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import json
 import pandas as pd
-from supervision import Detections
+# from supervision import Detections
 
 
 def load_frames_from_video(source_path: str) -> list[np.ndarray]:
@@ -88,7 +88,8 @@ def load_tracks_from_json(path: str) -> dict:
     return detections
 
 
-def get_tracker_ids(tracks: Detections) -> list:
+# def get_tracker_ids(tracks: Detections) -> list:
+def get_tracker_ids(tracks) -> list:
     tracker_ids = []
     for tracker_id, class_id in zip(tracks.tracker_id.tolist(), tracks.class_id.tolist()):
         if class_id == 0:

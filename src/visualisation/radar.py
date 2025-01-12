@@ -8,7 +8,8 @@ import numpy as np
 
 
 class Radar:
-    def __init__(self, players_df: pd.DataFrame, team_colors: tuple, smoothing_window: int = 5):
+    def __init__(self, players_df: pd.DataFrame, team_colors: tuple = ((1, 0, 0), (0, 1, 0)),
+                 smoothing_window: int = 5):
         self.players_df = players_df
         self.team_colors = self._parse_colors(team_colors)
         self._edge_colors = ((0, 0, 0), (1, 1, 1))
@@ -54,7 +55,7 @@ class Radar:
             df.loc[df['track_id'] == track_id, 'y_smooth'] = y_smooth
         return df
 
-    def draw_radar(self, frame_num: int = 1, axis: bool = True, label: bool = True):
+    def draw_radar(self, frame_num: int = 1, axis: bool = True, show: bool = True):
         if frame_num > self.n_frames:
             raise ValueError(f'frame_num greater than number of frames: {frame_num} > {self.n_frames}')
         pitch = Pitch(pitch_type='custom', axis=axis, label=axis, pitch_length=105, pitch_width=68)
@@ -62,8 +63,9 @@ class Radar:
         df = self.players_df[self.players_df['frame'] == frame_num]
         color_map = [self.team_colors[team] for team in df.team]
         edge_colors = [self._edge_colors[team] for team in df.team]
-        pitch.scatter(df.x, df.y, ax=ax, c=color_map, marker='o', edgecolors=edge_colors)
-        plt.show()
+        pitch.scatter(df.x, df.y, ax=ax, c=color_map, marker='o', edgecolors=edge_colors, s=220, zorder=2, linewidths=3)
+        if show:
+            plt.show()
 
     # TODO dopasować do formatu danych w klasie
     @staticmethod
@@ -90,7 +92,7 @@ class Radar:
             plt.show()
         ani.save(path, fps=fps)
 
-    def draw_trace(self, n_frame: int, n_frames_back: int = 45, draw: bool = True) -> tuple:
+    def draw_trace(self, n_frame: int, n_frames_back: int = 45, draw: bool = True, close: bool = True) -> tuple:
         df = self.savgol_df
         last_frame: int = n_frame - n_frames_back if n_frame - n_frames_back > 0 else 0
         df_frame = df[df['frame'] == n_frame]
@@ -112,5 +114,6 @@ class Radar:
                       s=220, zorder=2, linewidths=3)
         if draw:
             plt.show()
-        plt.close()
+        if close:
+            plt.close()
         return fig, ax
